@@ -1,0 +1,67 @@
+DROP SCHEMA IF EXISTS smallbiz;
+CREATE SCHEMA smallbiz;
+USE smallbiz;
+
+CREATE TABLE IF NOT EXISTS `customers` (
+    `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `loyalty_points` MEDIUMINT NOT NULL,
+    PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `products` (
+    `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `price` DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `sales` (
+    `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+    `timestamp` TIMESTAMP NOT NULL,
+    `customer_id` INTEGER UNSIGNED,
+    PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `sales_line_item` (
+    `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+    `product_id` INTEGER UNSIGNED NOT NULL,
+    `quantity` SMALLINT NOT NULL,
+    `sale_id` INTEGER UNSIGNED NOT NULL,
+    PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `vendors` (
+    `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `inventory_item` (
+    `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+    `stock_count` MEDIUMINT NOT NULL,
+    `vendor_id` INTEGER UNSIGNED NOT NULL,
+    PRIMARY KEY(`id`)
+);
+
+
+ALTER TABLE `sales_line_item`
+ADD FOREIGN KEY(`product_id`) REFERENCES `products`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE `sales_line_item`
+ADD FOREIGN KEY(`sale_id`) REFERENCES `sales`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE `sales`
+ADD FOREIGN KEY(`customer_id`) REFERENCES `customers`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE `inventory_item`
+ADD FOREIGN KEY(`vendor_id`) REFERENCES `vendors`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
