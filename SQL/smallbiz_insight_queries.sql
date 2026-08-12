@@ -205,7 +205,7 @@ SELECT
      JOIN sales_line_items AS sli ON s.sale_id = sli.sale_id
      WHERE s.sale_status = 'Completed')
     - (SELECT SUM(amount) FROM expenses)           AS net_income;
-a
+
 -- ============================================================
 -- Vendors
 -- ============================================================
