@@ -238,3 +238,95 @@ SELECT
 FROM compliance_items
 WHERE renewal_status IN ('Due Soon', 'Expired')
 ORDER BY expiration_date;
+
+-- ============================================================
+-- Repeat Customers
+-- ============================================================
+
+-- Customers who have purchased more than once
+SELECT
+    c.customer_id,
+    CONCAT(c.first_name, ' ', c.last_name) AS customer_name,
+    COUNT(DISTINCT s.sale_id) AS purchase_count,
+    SUM(sli.quantity * sli.unit_price) AS total_spent
+FROM customers AS c
+JOIN sales AS s ON c.customer_id = s.customer_id
+JOIN sales_line_items AS sli ON s.sale_id = sli.sale_id
+WHERE s.sale_status = 'Completed'
+GROUP BY c.customer_id, customer_name
+HAVING COUNT(DISTINCT s.sale_id) > 1
+ORDER BY purchase_count DESC;
+
+-- ============================================================
+-- Customer Purchase Frequency
+-- ============================================================
+
+-- Last purchase date for each customer
+SELECT
+    c.customer_id,
+    CONCAT(c.first_name, ' ', c.last_name) AS customer_name,
+    c.email,
+    MAX(s.sale_timestamp) AS last_purchase_date
+FROM customers AS c
+LEFT JOIN sales AS s ON c.customer_id = s.customer_id
+GROUP BY c.customer_id, customer_name, c.email
+ORDER BY last_purchase_date DESC;
+
+-- ============================================================
+-- Simple Product Analysis
+-- ============================================================
+
+-- Products ranked by total profit
+SELECT
+    p.product_id,
+    p.product_name,
+    p.category,
+    SUM(sli.quantity) AS units_sold,
+    ROUND(SUM(sli.quantity * (sli.unit_price - p.unit_cost)), 2) AS total_profit
+FROM products AS p
+LEFT JOIN sales_line_items AS sli ON p.product_id = sli.product_id
+LEFT JOIN sales AS s ON sli.sale_id = s.sale_id
+WHERE s.sale_status = 'Completed' OR s.sale_id IS NULL
+GROUP BY p.product_id, p.product_name, p.category
+ORDER BY total_profit DESC;
+
+-- Products with low stock (below reorder level)
+SELECT
+    p.product_id,
+    p.product_name,
+    p.category,
+    i.stock_count,
+    i.reorder_level,
+    (i.reorder_level - i.stock_count) AS units_to_order
+FROM products AS p
+JOIN inventory_items AS i ON p.product_id = i.product_id
+WHERE i.stock_count < i.reorder_level
+ORDER BY units_to_order DESC;
+
+-- ============================================================
+-- Monthly Sales Summary
+-- ============================================================
+
+-- Revenue by month
+SELECT
+    DATE_FORMAT(s.sale_timestamp, '%Y-%m') AS month,
+    SUM(sli.quantity * sli.unit_price) AS monthly_revenue
+FROM sales AS s
+JOIN sales_line_items AS sli ON s.sale_id = sli.sale_id
+WHERE s.sale_status = 'Completed'
+GROUP BY month
+ORDER BY month DESC;
+
+-- ============================================================
+-- Simple Business Overview
+-- ============================================================
+
+-- Total sales, expenses, and profit
+SELECT
+    COUNT(DISTINCT s.sale_id) AS total_sales,
+    ROUND(SUM(sli.quantity * sli.unit_price), 2) AS total_revenue,
+    (SELECT ROUND(SUM(amount), 2) FROM expenses) AS total_expenses,
+    ROUND(SUM(sli.quantity * sli.unit_price) - (SELECT SUM(amount) FROM expenses), 2) AS net_profit
+FROM sales AS s
+JOIN sales_line_items AS sli ON s.sale_id = sli.sale_id
+WHERE s.sale_status = 'Completed';
