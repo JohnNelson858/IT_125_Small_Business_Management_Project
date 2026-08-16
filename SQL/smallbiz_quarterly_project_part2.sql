@@ -8,6 +8,7 @@ DROP SCHEMA IF EXISTS smallbiz;
 CREATE SCHEMA smallbiz;
 USE smallbiz;
 
+DROP TABLE IF EXISTS customers;
 CREATE TABLE customers
 (
     customer_id       INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -601,3 +602,6 @@ SELECT
     renewal_cost
 FROM compliance_items
 ORDER BY expiration_date;
+
+SELECT * FROM customers;
+SELECT * FROM expenses;

@@ -1,3 +1,4 @@
+-- SQLBook: Code
 DROP SCHEMA IF EXISTS smallbiz;
 CREATE SCHEMA smallbiz;
 USE smallbiz;
@@ -65,3 +66,5 @@ ON UPDATE NO ACTION ON DELETE NO ACTION;
 ALTER TABLE `inventory_item`
 ADD FOREIGN KEY(`vendor_id`) REFERENCES `vendors`(`id`)
 ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+SELECT * FROM expenses;
