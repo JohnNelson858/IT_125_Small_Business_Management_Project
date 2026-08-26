@@ -180,6 +180,13 @@ REFERENCES vendors (vendor_id)
 ON UPDATE NO ACTION
 ON DELETE SET NULL;
 
+-- Create indexes
+CREATE INDEX idx_products_category
+ON products (category);
+
+CREATE INDEX idx_sales_timestamp
+ON sales (sale_timestamp);
+
 -- 40 customers
 INSERT INTO customers
 (first_name, last_name, email, phone, street_address, city, state, zip_code,
@@ -411,10 +418,20 @@ INSERT INTO sales_line_items
 (sale_id, product_id, quantity, unit_price)
 VALUES
 (4001,3001,1,4.12),
+(4001,3002,1,9.49),
+(4001,3005,1,25.57),
 (4002,3002,2,9.49),
+(4002,3001,2,4.12),
+(4002,3006,1,30.94),
 (4003,3003,3,14.85),
+(4003,3004,1,20.21),
+(4003,3007,2,36.30),
 (4004,3004,4,20.21),
+(4004,3001,1,4.12),
+(4004,3008,1,41.66),
 (4005,3005,1,25.57),
+(4005,3003,2,14.85),
+(4005,3009,1,47.02),
 (4006,3006,2,30.94),
 (4007,3007,3,36.30),
 (4008,3008,4,41.66),
@@ -605,3 +622,43 @@ ORDER BY expiration_date;
 
 SELECT * FROM customers;
 SELECT * FROM expenses;
+
+-- =========================================================
+-- VIEW 1: CUSTOMER SALES SUMMARY
+-- =========================================================
+
+CREATE VIEW CustomerSalesSummary AS
+SELECT
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    COUNT(DISTINCT s.sale_id) AS purchase_count,
+    SUM(sli.quantity * sli.unit_price) AS total_spent,
+    MAX(s.sale_timestamp) AS last_purchase
+FROM customers AS c
+JOIN sales AS s
+    ON c.customer_id = s.customer_id
+JOIN sales_line_items AS sli
+    ON s.sale_id = sli.sale_id
+GROUP BY
+    c.customer_id,
+    c.first_name,
+    c.last_name;
+    
+-- =========================================================
+-- VIEW 2: INVENTORY REORDER REPORT
+-- =========================================================
+
+CREATE VIEW InventoryReorderReport AS
+SELECT
+    p.product_id,
+    p.product_name,
+    v.vendor_name,
+    i.stock_count,
+    i.reorder_level
+FROM inventory_items AS i
+JOIN products AS p
+    ON i.product_id = p.product_id
+JOIN vendors AS v
+    ON i.vendor_id = v.vendor_id
+WHERE i.stock_count <= i.reorder_level;

@@ -1,6 +1,21 @@
 USE smallbiz;
 
 -- ============================================================
+-- From View 1
+-- ============================================================
+
+SELECT *
+FROM CustomerSalesSummary
+WHERE total_spent > 100;
+
+-- ============================================================
+-- From View 2
+-- ============================================================
+
+SELECT *
+FROM InventoryReorderReport;
+
+-- ============================================================
 -- Customers
 -- ============================================================
 
@@ -330,3 +345,24 @@ SELECT
 FROM sales AS s
 JOIN sales_line_items AS sli ON s.sale_id = sli.sale_id
 WHERE s.sale_status = 'Completed';
+
+-- ============================================================
+-- multiple products attached to the same sale
+-- ============================================================
+
+SELECT
+    s.sale_id,
+    s.sale_timestamp,
+    p.product_name,
+    sli.quantity,
+    sli.unit_price,
+    (sli.quantity * sli.unit_price) AS line_total
+FROM sales AS s
+JOIN sales_line_items AS sli
+    ON s.sale_id = sli.sale_id
+JOIN products AS p
+    ON sli.product_id = p.product_id
+WHERE s.sale_id BETWEEN 4001 AND 4005
+ORDER BY
+    s.sale_id,
+    sli.sale_line_item_id;
